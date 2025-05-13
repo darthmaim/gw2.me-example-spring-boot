@@ -42,6 +42,14 @@
             </tr>
             </tbody>
         </table>
+
+        <h5>Accounts</h5>
+        <ul>
+            <li th:each="account : ${accounts}">
+                <span th:text="${account.name}">Account</span>
+                <a th:href="|/account?id=${account.id}|" target="gw2-api">API</a>
+            </li>
+        </ul>
     </div>
 
     <form method="get" th:action="@{/oauth2/authorization/gw2me}" th:unless="${#authorization.expression('isAuthenticated()')}">
