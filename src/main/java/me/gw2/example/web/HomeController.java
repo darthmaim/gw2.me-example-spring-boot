@@ -12,6 +12,7 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.io.IOException;
+import java.util.Map;
 
 import static org.springframework.security.oauth2.client.web.client.RequestAttributeClientRegistrationIdResolver.clientRegistrationId;
 
@@ -26,20 +27,18 @@ class HomeController {
             return new ModelAndView("home");
         }
 
-        // create model
-        var model = new java.util.HashMap<String, Object>();
-
-        // add user attributes to model
-        model.put("attributes", user.getAttributes());
-
         // get accounts
-        var accounts = this.restClient.get()
+        var accountsResponse = this.restClient.get()
                         .uri("https://gw2.me/api/accounts")
                         .attributes(clientRegistrationId("gw2me"))
                         .retrieve()
                         .body(Gw2MeAccounts.class);
 
-        model.put("accounts", accounts.accounts);
+        // build model with user attributes and accounts
+        var model = Map.of(
+                "attributes", user.getAttributes(),
+                "accounts", accountsResponse.accounts
+        );
 
         return new ModelAndView("home", model);
     }

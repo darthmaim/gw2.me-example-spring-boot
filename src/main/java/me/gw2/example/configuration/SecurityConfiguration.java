@@ -2,10 +2,8 @@ package me.gw2.example.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.oauth2.client.OAuth2LoginConfigurer;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestCustomizers;
@@ -17,17 +15,7 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfiguration {
 
     @Bean
-    public SecurityFilterChain securityWebFilterChain(HttpSecurity http, Customizer<OAuth2LoginConfigurer<HttpSecurity>> customizeOauth2Login) throws Exception {
-        http.authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
-                .oauth2Login(customizeOauth2Login);
-
-        return http.build();
-    }
-
-    @Bean
-    public Customizer<OAuth2LoginConfigurer<HttpSecurity>> customizeOauth2Login(
-            ClientRegistrationRepository clientRegistrationRepository
-    ) {
+    public SecurityFilterChain securityWebFilterChain(HttpSecurity http, ClientRegistrationRepository clientRegistrationRepository) throws Exception {
         // create custom auth resolver
         var resolver = new DefaultOAuth2AuthorizationRequestResolver(clientRegistrationRepository, OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI);
 
@@ -38,8 +26,11 @@ public class SecurityConfiguration {
                 // add `include_granted_scopes` parameter
                 .andThen(auth -> auth.additionalParameters(params -> params.put("include_granted_scopes", "true"))));
 
-        return auth ->
-                auth.authorizationEndpoint(endpoint ->
-                        endpoint.authorizationRequestResolver(resolver));
+        http.authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+                .oauth2Login(auth ->
+                        auth.authorizationEndpoint(endpoint ->
+                                endpoint.authorizationRequestResolver(resolver)));
+
+        return http.build();
     }
 }
