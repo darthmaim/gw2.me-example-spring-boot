@@ -2,6 +2,7 @@ package me.gw2.example.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
@@ -27,9 +28,9 @@ public class SecurityConfiguration {
                 .andThen(auth -> auth.additionalParameters(params -> params.put("include_granted_scopes", "true"))));
 
         http.authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
-                .oauth2Login(auth ->
-                        auth.authorizationEndpoint(endpoint ->
-                                endpoint.authorizationRequestResolver(resolver)));
+                .oauth2Login(auth -> auth
+                        .authorizationEndpoint(endpoint -> endpoint.authorizationRequestResolver(resolver)))
+                .oauth2Client(Customizer.withDefaults());
 
         return http.build();
     }
