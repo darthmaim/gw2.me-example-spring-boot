@@ -11,6 +11,7 @@ public class RestClientConfig {
 
     @Bean
     public RestClient restClient(RestClient.Builder builder, OAuth2AuthorizedClientManager authorizedClientManager) {
+        // This request interceptor will inject the gw2.me access token when using the gw2.me API
         OAuth2ClientHttpRequestInterceptor requestInterceptor =
                 new OAuth2ClientHttpRequestInterceptor(authorizedClientManager);
 

@@ -17,19 +17,27 @@ public class SecurityConfiguration {
 
     @Bean
     public SecurityFilterChain securityWebFilterChain(HttpSecurity http, ClientRegistrationRepository clientRegistrationRepository) throws Exception {
-        // create custom auth resolver
+        // Create a custom auth resolver, so we can can configure it
         var resolver = new DefaultOAuth2AuthorizationRequestResolver(clientRegistrationRepository, OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI);
 
-        // configure
+        // Configure the auth resolver
         resolver.setAuthorizationRequestCustomizer(OAuth2AuthorizationRequestCustomizers
-                // always enable PKCE, even for confidential clients
+                // Spring Security only uses PKCE for public clients.
+                // This always enables PKCE even for confidential clients for added security (optional).
                 .withPkce()
-                // add `include_granted_scopes` parameter
+                // Here additional parameters can be added when requesting the authorization.
+                // For example `include_granted_scopes` (see https://gw2.me/dev/docs/access-tokens for more parameters)
                 .andThen(auth -> auth.additionalParameters(params -> params.put("include_granted_scopes", "true"))));
 
-        http.authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+        // Configure http security
+        http
+                // This configures which endpoints require login.
+                // In the example, access to all endpoints is permitted.
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+                // Enable the OAuth2 login handler with the authorization resoliver configured above
                 .oauth2Login(auth -> auth
                         .authorizationEndpoint(endpoint -> endpoint.authorizationRequestResolver(resolver)))
+                // Configure the OAuth2 client (this is, among other things, used to handle ClientAuthorizationRequiredException)
                 .oauth2Client(Customizer.withDefaults());
 
         return http.build();
